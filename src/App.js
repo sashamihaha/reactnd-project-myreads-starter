@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { Route } from 'react-router-dom'
 import * as BooksAPI from './BooksAPI'
 import './App.css'
+import Search from './Search'
+import Book from './Book'
 
 class BooksApp extends React.Component {
   state = {
@@ -10,12 +12,11 @@ class BooksApp extends React.Component {
     wantToRead: '',
     read: '',
     query: '',
-    searchResult: undefined
+    searchResult: ''
   }
 
   fetchMyBooks() {
     BooksAPI.getAll().then(result => this.setState({
-
       currentlyReading: result.filter((book) => {
         return book.shelf === 'currentlyReading'
       }),
@@ -32,44 +33,33 @@ class BooksApp extends React.Component {
     this.fetchMyBooks();
   }
 
-  componentDidUpdate() {
-    this.fetchMyBooks();
-  }
-
-  updateQuery = (query) => {
+  updateQuery(query){
     this.setState({ query: query })
-    BooksAPI.search(this.state.query).then(result => this.setState({
+    console.log(query)
+    BooksAPI.search(query).then(result => this.setState({
       searchResult: result
     }))
   }
 
-  moveToShelf = (bookId, shelf) => {
-    BooksAPI.update(bookId, shelf);
+  getBookShelf(bookId){
+    let shelf = "none"
+    this.state.currentlyReading.map((book) => {
+      book.bookId === bookId ? shelf = "currentlyReading" : "none"
+    })
+    this.state.wantToRead.map((book) => {
+      book.bookId === bookId ? shelf = "wantToRead" : "none"
+    })
+    this.state.read.map((book) => {
+      book.bookId === bookId ? shelf = "read" : "none"
+    })
+    return shelf
   }
 
   render() {
     return (
       <div className="app">
         <Route path="/search" render={() => (
-          <div className="search-books">
-            <div className="search-books-bar">
-              <Link className="close-search" to="/">Close</Link>
-              <div className="search-books-input-wrapper">
-                <input type="text"
-                  placeholder="Search by title or author"
-                  value={this.state.query}
-                  onChange={(event) => this.updateQuery(event.target.value)}
-                />
-              </div>
-            </div>
-            <div className="search-books-results">
-              <ol className="books-grid">
-                {this.state.searchResult ? this.state.searchResult.map((result) => (
-                  <Book key={result.id} props={result} />
-                )) : ""}
-              </ol>
-            </div>
-          </div>
+          <Search query={this.state.query} searchResult={this.state.searchResult} updateQuery={(query) => this.updateQuery(query)} getBookShelf={(bookId) => this.getBookShelf(bookId)}/>
         )}
         />
         <Route exact path="/" render={() => (
@@ -84,7 +74,7 @@ class BooksApp extends React.Component {
                   <div className="bookshelf-books">
                     <ol className="books-grid">
                       {this.state.currentlyReading !== '' ? this.state.currentlyReading.map((book) => (
-                        <Book key={book.id} props={book} />
+                        <Book key={book.id} book={book} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)}/>
                       )) : ""}
                     </ol>
                   </div>
@@ -94,7 +84,7 @@ class BooksApp extends React.Component {
                   <div className="bookshelf-books">
                     <ol className="books-grid">
                       {this.state.wantToRead !== '' ? this.state.wantToRead.map((book) => (
-                        <Book key={book.id} props={book} />
+                        <Book key={book.id} book={book} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)}/>
                       )) : ""}
                     </ol>
                   </div>
@@ -104,7 +94,7 @@ class BooksApp extends React.Component {
                   <div className="bookshelf-books">
                     <ol className="books-grid">
                       {this.state.read !== '' ? this.state.read.map((book) => (
-                        <Book key={book.id} props={book} />
+                        <Book key={book.id} book={book} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)}/>
                       )) : ""}
                     </ol>
                   </div>
@@ -117,29 +107,6 @@ class BooksApp extends React.Component {
       </div>
     )
   }
-}
-
-const Book = ({ props }) => {
-  return (
-    <li key={props.id}>
-      <div className="book">
-        <div className="book-top">
-          <div className="book-cover" style={{ width: 128, height: 193, backgroundImage: `url(${props.imageLinks.thumbnail})` }}></div>
-          <div className="book-shelf-changer">
-            <select defaultValue="moveTo" onChange={(event) => BooksAPI.update(props, event.target.value)}>
-              <option value="moveTo" disabled>Move to...</option>
-              <option value="currentlyReading" >Currently Reading</option>
-              <option value="wantToRead">Want to Read</option>
-              <option value="read">Read</option>
-              <option value="none">None</option>
-            </select>
-          </div>
-        </div>
-        <div className="book-title">{props.title}</div>
-        <div className="book-authors">{props.authors}</div>
-      </div>
-    </li>
-  )
 }
 
 export default BooksApp
