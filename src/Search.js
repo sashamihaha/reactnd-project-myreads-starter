@@ -5,10 +5,6 @@ import Book from './Book'
 
 class Search extends React.Component {
 
-    handleChange(event) {
-        this.props.updateQuery(event.target.value);
-    }
-
     render() {
         return (
             <div className="search-books">
@@ -18,14 +14,14 @@ class Search extends React.Component {
                         <input type="text"
                             placeholder="Search by title or author"
                             value={this.props.query}
-                            onChange={this.handleChange.bind(this)}
+                            onChange={(event) => this.props.updateQuery(event.target.value)}
                         />
                     </div>
                 </div>
                 <div className="search-books-results">
                     <ol className="books-grid">
-                        {this.props.searchResult ? this.props.searchResult.map((result) => (
-                            <Book key={result.id} book={result} getBookShelf={(bookId) => this.props.getBookShelf(bookId)} />
+                        {this.props.searchResult.length > 0 ? this.props.searchResult.map((result) => (
+                            <Book key={result.id} book={result} getBookShelf={(bookId) => this.props.getBookShelf(bookId)} updateBooks={() => this.props.updateBooks()}/>
                         )) : ""}
                     </ol>
                 </div>

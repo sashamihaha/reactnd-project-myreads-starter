@@ -33,24 +33,23 @@ class BooksApp extends React.Component {
     this.fetchMyBooks();
   }
 
-  updateQuery(query){
+  updateQuery(query) {
     this.setState({ query: query })
-    console.log(query)
     BooksAPI.search(query).then(result => this.setState({
       searchResult: result
     }))
   }
 
-  getBookShelf(bookId){
+  getBookShelf(bookId) {
     let shelf = "none"
     this.state.currentlyReading.map((book) => {
-      book.bookId === bookId ? shelf = "currentlyReading" : "none"
+      book.id === bookId ? shelf = "currentlyReading" : ""
     })
     this.state.wantToRead.map((book) => {
-      book.bookId === bookId ? shelf = "wantToRead" : "none"
+      book.id === bookId ? shelf = "wantToRead" : ""
     })
     this.state.read.map((book) => {
-      book.bookId === bookId ? shelf = "read" : "none"
+      book.id === bookId ? shelf = "read" : ""
     })
     return shelf
   }
@@ -59,7 +58,7 @@ class BooksApp extends React.Component {
     return (
       <div className="app">
         <Route path="/search" render={() => (
-          <Search query={this.state.query} searchResult={this.state.searchResult} updateQuery={(query) => this.updateQuery(query)} getBookShelf={(bookId) => this.getBookShelf(bookId)}/>
+          <Search query={this.state.query} searchResult={this.state.searchResult} updateQuery={(query) => this.updateQuery(query)} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)} />
         )}
         />
         <Route exact path="/" render={() => (
@@ -69,36 +68,9 @@ class BooksApp extends React.Component {
             </div>
             <div className="list-books-content">
               <div>
-                <div className="bookshelf">
-                  <h2 className="bookshelf-title">Currently Reading</h2>
-                  <div className="bookshelf-books">
-                    <ol className="books-grid">
-                      {this.state.currentlyReading !== '' ? this.state.currentlyReading.map((book) => (
-                        <Book key={book.id} book={book} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)}/>
-                      )) : ""}
-                    </ol>
-                  </div>
-                </div>
-                <div className="bookshelf">
-                  <h2 className="bookshelf-title">Want to Read</h2>
-                  <div className="bookshelf-books">
-                    <ol className="books-grid">
-                      {this.state.wantToRead !== '' ? this.state.wantToRead.map((book) => (
-                        <Book key={book.id} book={book} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)}/>
-                      )) : ""}
-                    </ol>
-                  </div>
-                </div>
-                <div className="bookshelf">
-                  <h2 className="bookshelf-title">Read</h2>
-                  <div className="bookshelf-books">
-                    <ol className="books-grid">
-                      {this.state.read !== '' ? this.state.read.map((book) => (
-                        <Book key={book.id} book={book} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)}/>
-                      )) : ""}
-                    </ol>
-                  </div>
-                </div>
+                <Shelf shelfTitle={"Currently Reading"} books={this.state.currentlyReading} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)} />
+                <Shelf shelfTitle={"Want to Read"} books={this.state.wantToRead} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)} />
+                <Shelf shelfTitle={"Read"} books={this.state.read} updateBooks={() => this.fetchMyBooks()} getBookShelf={(bookId) => this.getBookShelf(bookId)} />
               </div>
             </div>
             <Link className="open-search" to="/search">Add a book</Link>
@@ -107,6 +79,21 @@ class BooksApp extends React.Component {
       </div>
     )
   }
+}
+
+const Shelf = ({ shelfTitle, updateBooks, getBookShelf, books }) => {
+  return (
+    <div className="bookshelf">
+      <h2 className="bookshelf-title">{shelfTitle}</h2>
+      <div className="bookshelf-books">
+        <ol className="books-grid">
+          {books !== '' ? books.map((book) => (
+            <Book key={book.id} book={book} updateBooks={() => updateBooks()} getBookShelf={(bookId) => getBookShelf(bookId)} />
+          )) : ""}
+        </ol>
+      </div>
+    </div>
+  )
 }
 
 export default BooksApp
